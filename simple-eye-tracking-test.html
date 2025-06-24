@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚨緊急テスト: シンプル眼球追跡システム</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 4px solid #00ff00;
+        }
+        .error-section {
+            border-left: 4px solid #ff0000;
+        }
+        .status {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            background: linear-gradient(45deg, #00ff00, #0080ff);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+        }
+        .log {
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+            border: 1px solid #333;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff4444; }
+        .warning { color: #ffaa00; }
+        .info { color: #4488ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 緊急テスト: シンプル眼球追跡システム</h1>
+        
+        <div class="test-section">
+            <h2>📊 システム状態</h2>
+            <div class="status" id="system-status">初期化中...</div>
+            <div class="status" id="webgazer-status">WebGazer.js: 確認中</div>
+            <div class="status" id="camera-status">カメラ: 未確認</div>
+            <div class="status" id="browser-status">ブラウザ: 確認中</div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎯 眼球追跡テスト</h2>
+            <button onclick="testWebGazerBasic()">基本テスト実行</button>
+            <button onclick="testCameraAccess()">カメラアクセステスト</button>
+            <button onclick="startSimpleCalibration()">シンプル校正開始</button>
+            <button onclick="clearLogs()">ログクリア</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 詳細ログ</h2>
+            <div class="log" id="detailed-log">システム起動中...\n</div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔧 環境情報</h2>
+            <div class="status" id="env-info">収集中...</div>
+        </div>
+    </div>
+
+    <!-- WebGazer.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/webgazer@2.0.1/dist/webgazer.min.js"></script>
+
+    <script>
+        // 🚨 シンプルな実際テスト用JavaScript
+        let logElement = null;
+        let webgazerReady = false;
+        let calibrationActive = false;
+
+        // ログ機能
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type;
+            
+            console.log(`[${timestamp}] ${message}`);
+            
+            if (!logElement) {
+                logElement = document.getElementById('detailed-log');
+            }
+            
+            const logLine = document.createElement('div');
+            logLine.className = colorClass;
+            logLine.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(logLine);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLogs() {
+            if (logElement) {
+                logElement.innerHTML = '';
+            }
+            console.clear();
+            log('ログクリアしました', 'info');
+        }
+
+        // システム初期化
+        async function initializeSystem() {
+            log('🚀 システム初期化開始', 'info');
+            
+            // 環境情報収集
+            collectEnvironmentInfo();
+            
+            // WebGazer.js確認
+            checkWebGazerAvailability();
+            
+            // ブラウザサポート確認
+            checkBrowserSupport();
+        }
+
+        function collectEnvironmentInfo() {
+            try {
+                const info = {
+                    userAgent: navigator.userAgent,
+                    protocol: window.location.protocol,
+                    hostname: window.location.hostname,
+                    hasMediaDevices: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                    hasWebGL: !!window.WebGLRenderingContext,
+                    cookieEnabled: navigator.cookieEnabled,
+                    language: navigator.language
+                };
+                
+                document.getElementById('env-info').innerHTML = `
+                    <strong>ブラウザ:</strong> ${getBrowserName()}<br>
+                    <strong>プロトコル:</strong> ${info.protocol}<br>
+                    <strong>ホスト:</strong> ${info.hostname}<br>
+                    <strong>MediaDevices:</strong> ${info.hasMediaDevices ? '✅' : '❌'}<br>
+                    <strong>WebGL:</strong> ${info.hasWebGL ? '✅' : '❌'}<br>
+                    <strong>言語:</strong> ${info.language}
+                `;
+                
+                log(`環境情報収集完了: ${getBrowserName()} on ${info.protocol}//${info.hostname}`, 'success');
+            } catch (error) {
+                log(`環境情報収集エラー: ${error.message}`, 'error');
+            }
+        }
+
+        function getBrowserName() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Chrome') && !ua.includes('Edge')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+            if (ua.includes('Edge')) return 'Edge';
+            return 'Unknown';
+        }
+
+        function checkWebGazerAvailability() {
+            if (typeof webgazer !== 'undefined') {
+                log('✅ WebGazer.js利用可能', 'success');
+                document.getElementById('webgazer-status').textContent = 'WebGazer.js: ✅ 利用可能';
+                webgazerReady = true;
+            } else {
+                log('❌ WebGazer.jsが利用できません', 'error');
+                document.getElementById('webgazer-status').textContent = 'WebGazer.js: ❌ 利用不可';
+                webgazerReady = false;
+            }
+        }
+
+        function checkBrowserSupport() {
+            const issues = [];
+            
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                issues.push('HTTPS接続が必要です');
+            }
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                issues.push('カメラAPIがサポートされていません');
+            }
+            
+            if (!window.WebGLRenderingContext) {
+                issues.push('WebGLがサポートされていません');
+            }
+            
+            if (issues.length === 0) {
+                log('✅ ブラウザサポート確認完了', 'success');
+                document.getElementById('browser-status').textContent = 'ブラウザ: ✅ 対応';
+            } else {
+                log(`⚠️ ブラウザサポート問題: ${issues.join(', ')}`, 'warning');
+                document.getElementById('browser-status').textContent = `ブラウザ: ⚠️ ${issues.length}個の問題`;
+            }
+        }
+
+        // 基本テスト
+        async function testWebGazerBasic() {
+            log('🧪 WebGazer基本テスト開始', 'info');
+            
+            try {
+                if (!webgazerReady) {
+                    throw new Error('WebGazer.jsが利用できません');
+                }
+                
+                log('WebGazer初期化中...', 'info');
+                
+                // 基本的な初期化のみ
+                await webgazer.setGazeListener(function(data, clock) {
+                    if (data) {
+                        log(`視線データ: x=${Math.round(data.x)}, y=${Math.round(data.y)}`, 'info');
+                    }
+                }).begin();
+                
+                log('✅ WebGazer基本初期化成功', 'success');
+                document.getElementById('system-status').textContent = 'システム: ✅ 初期化完了';
+                
+                // 基本設定
+                webgazer.showVideoPreview(false);
+                webgazer.showPredictionPoints(false);
+                
+                log('基本設定適用完了', 'success');
+                
+            } catch (error) {
+                log(`❌ WebGazer基本テスト失敗: ${error.message}`, 'error');
+                document.getElementById('system-status').textContent = `システム: ❌ ${error.message}`;
+            }
+        }
+
+        // カメラアクセステスト
+        async function testCameraAccess() {
+            log('📷 カメラアクセステスト開始', 'info');
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    } 
+                });
+                
+                log('✅ カメラアクセス成功', 'success');
+                document.getElementById('camera-status').textContent = 'カメラ: ✅ アクセス可能';
+                
+                // ストリームを停止
+                stream.getTracks().forEach(track => track.stop());
+                log('カメラストリーム停止', 'info');
+                
+            } catch (error) {
+                log(`❌ カメラアクセス失敗: ${error.message}`, 'error');
+                document.getElementById('camera-status').textContent = `カメラ: ❌ ${error.message}`;
+                
+                // 具体的なエラー原因の分析
+                if (error.name === 'NotAllowedError') {
+                    log('カメラアクセスが拒否されました。ブラウザの設定を確認してください。', 'warning');
+                } else if (error.name === 'NotFoundError') {
+                    log('カメラデバイスが見つかりません。', 'warning');
+                } else if (error.name === 'NotSupportedError') {
+                    log('HTTPS接続が必要です。', 'warning');
+                }
+            }
+        }
+
+        // シンプル校正
+        async function startSimpleCalibration() {
+            log('🎯 シンプル校正開始', 'info');
+            
+            if (!webgazerReady) {
+                log('WebGazer.jsが利用できません', 'error');
+                return;
+            }
+            
+            if (calibrationActive) {
+                log('既に校正が実行中です', 'warning');
+                return;
+            }
+            
+            try {
+                calibrationActive = true;
+                
+                // まずWebGazer初期化
+                await testWebGazerBasic();
+                
+                log('校正画面を表示します', 'info');
+                showSimpleCalibrationInterface();
+                
+            } catch (error) {
+                log(`校正開始エラー: ${error.message}`, 'error');
+                calibrationActive = false;
+            }
+        }
+
+        function showSimpleCalibrationInterface() {
+            const overlay = document.createElement('div');
+            overlay.id = 'calibration-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                z-index: 10000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                font-family: Arial, sans-serif;
+            `;
+            
+            overlay.innerHTML = `
+                <div style="text-align: center;">
+                    <h2>🎯 シンプル校正テスト</h2>
+                    <p>この赤い点をクリックしてください</p>
+                    <div style="
+                        width: 30px;
+                        height: 30px;
+                        background: red;
+                        border-radius: 50%;
+                        margin: 30px auto;
+                        cursor: pointer;
+                        animation: pulse 1s infinite;
+                    " onclick="completeSimpleCalibration()"></div>
+                    <button onclick="cancelCalibration()" style="
+                        background: #ff4444;
+                        border: none;
+                        padding: 10px 20px;
+                        color: white;
+                        border-radius: 5px;
+                        cursor: pointer;
+                    ">キャンセル</button>
+                </div>
+            `;
+            
+            // CSS アニメーション追加
+            if (!document.getElementById('calibration-style')) {
+                const style = document.createElement('style');
+                style.id = 'calibration-style';
+                style.textContent = `
+                    @keyframes pulse {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.2); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(overlay);
+            log('校正インターフェース表示完了', 'success');
+        }
+
+        function completeSimpleCalibration() {
+            log('🎉 シンプル校正完了', 'success');
+            
+            try {
+                // WebGazer校正を実行
+                webgazer.recordScreenPosition(window.innerWidth/2, window.innerHeight/2, 'click');
+                log('WebGazer校正データ記録完了', 'success');
+            } catch (error) {
+                log(`校正データ記録エラー: ${error.message}`, 'error');
+            }
+            
+            const overlay = document.getElementById('calibration-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            
+            calibrationActive = false;
+            log('校正プロセス完了', 'success');
+        }
+
+        function cancelCalibration() {
+            log('校正をキャンセルしました', 'warning');
+            const overlay = document.getElementById('calibration-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
+            calibrationActive = false;
+        }
+
+        // ページ読み込み後の初期化
+        window.addEventListener('load', function() {
+            log('📄 ページ読み込み完了', 'info');
+            
+            // 少し待ってからシステム初期化
+            setTimeout(initializeSystem, 500);
+        });
+
+        // エラーハンドリング
+        window.addEventListener('error', function(event) {
+            log(`💥 JavaScript エラー: ${event.error.message}`, 'error');
+        });
+
+        // WebGazer.js読み込み完了時
+        if (typeof webgazer !== 'undefined') {
+            log('WebGazer.js読み込み検出', 'success');
+        } else {
+            log('WebGazer.js読み込み待機中...', 'info');
+        }
+    </script>
+</body>
+</html>

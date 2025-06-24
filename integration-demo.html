@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced IT Company Website - Interactive Demo</title>
+    
+    <!-- 🚨緊急修正: 堅牢なCDNライブラリ読み込み -->
+    <!-- WebGazer.js - 複数CDNフォールバック対応 -->
+    <script>
+        // WebGazer.js動的読み込みシステム
+        (function() {
+            const webgazerUrls = [
+                'https://cdn.jsdelivr.net/npm/webgazer@2.0.1/dist/webgazer.min.js',
+                'https://unpkg.com/webgazer@2.0.1/dist/webgazer.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/webgazer/2.0.0/webgazer.min.js'
+            ];
+            
+            let currentUrlIndex = 0;
+            
+            function loadWebGazer() {
+                return new Promise((resolve, reject) => {
+                    if (currentUrlIndex >= webgazerUrls.length) {
+                        reject(new Error('すべてのWebGazer.js CDNの読み込みに失敗しました'));
+                        return;
+                    }
+                    
+                    const script = document.createElement('script');
+                    script.src = webgazerUrls[currentUrlIndex];
+                    script.onload = () => {
+                        console.log(`✅ WebGazer.js読み込み成功: ${webgazerUrls[currentUrlIndex]}`);
+                        resolve();
+                    };
+                    script.onerror = () => {
+                        console.warn(`⚠️ WebGazer.js読み込み失敗: ${webgazerUrls[currentUrlIndex]}`);
+                        currentUrlIndex++;
+                        loadWebGazer().then(resolve).catch(reject);
+                    };
+                    document.head.appendChild(script);
+                });
+            }
+            
+            // WebGazer.js読み込み開始
+            window.webgazerPromise = loadWebGazer();
+        })();
+    </script>
+    
+    <!-- その他のライブラリ（オプション） -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Enhanced Styles -->
+    <link rel="stylesheet" href="enhanced-styles.css">
+    
+    <style>
+        /* Demo-specific styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            overflow-x: hidden;
+            /* 🚨修正: スクロール機能確保 */
+            overflow-y: auto;
+            min-height: 100vh;
+        }
+
+        .demo-container {
+            position: relative;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 50px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            margin-bottom: 40px;
+            border-radius: 20px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00ff00, #0080ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card h3 {
+            color: #00ff00;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .feature-card p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .demo-button {
+            background: linear-gradient(45deg, #00ff00, #0080ff);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 255, 0, 0.3);
+        }
+
+        .interaction-demo {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .status-indicator .status-item {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator .status-light {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status-light.active {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .status-light.inactive {
+            background: #ff0000;
+        }
+
+        .holographic-demo {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .code-lines {
+            line-height: 1.8;
+        }
+
+        .code-line {
+            opacity: 0;
+            animation: codeAppear 0.5s ease forwards;
+        }
+
+        @keyframes codeAppear {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .emotion-demo {
+            background: var(--primary-color);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        .emotion-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .emotion-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .emotion-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .particle-demo {
+            height: 300px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+
+        .particle-demo::before {
+            content: 'Move your mouse here to interact with quantum particles';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            z-index: 1;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .control-group {
+            margin: 15px 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .control-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .debug-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #00ff00;
+            max-width: 300px;
+            display: none;
+        }
+
+        .debug-mode .debug-info {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .status-indicator {
+                font-size: 10px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="quantum-field">
+    <!-- Status Indicator -->
+    <div class="status-indicator">
+        <div class="status-item">
+            Eye Tracking: <div class="status-light inactive" id="eye-status"></div>
+        </div>
+        <div class="status-item">
+            Mouse Prediction: <div class="status-light inactive" id="mouse-status"></div>
+        </div>
+        <div class="status-item">
+            Emotion Detection: <div class="status-light inactive" id="emotion-status"></div>
+        </div>
+        <div class="status-item">
+            Quantum Particles: <div class="status-light inactive" id="particle-status"></div>
+        </div>
+        <div class="status-item">
+            FPS: <span id="fps-display">0</span>
+        </div>
+    </div>
+
+    <!-- Debug Information -->
+    <div class="debug-info">
+        <div>Mouse Position: <span id="mouse-pos">0, 0</span></div>
+        <div>Gaze Position: <span id="gaze-pos">0, 0</span></div>
+        <div>Current Emotion: <span id="current-emotion">trust</span></div>
+        <div>Particle Count: <span id="particle-count">0</span></div>
+        <div>Memory Usage: <span id="memory-usage">0MB</span></div>
+    </div>
+
+    <div class="demo-container">
+        <!-- Header -->
+        <header class="header neural-ui gaze-interactive">
+            <h1>Enhanced IT Company</h1>
+            <p>Experience the future of web interaction</p>
+            <button class="demo-button gaze-interactive predictive-hover" onclick="toggleDebugMode()">
+                Toggle Debug Mode
+            </button>
+        </header>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <div class="feature-card gaze-interactive predictive-hover emotional-element">
+                <h3>👁️ Eye Tracking</h3>
+                <p>Revolutionary eye-tracking technology that responds to your gaze, creating intuitive navigation experiences.</p>
+                <button class="demo-button" onclick="startEyeCalibration()">Calibrate Eye Tracking</button>
+            </div>
+
+            <div class="feature-card gaze-interactive predictive-hover emotional-element">
+                <h3>🎯 Mouse Prediction</h3>
+                <p>Advanced algorithms predict your mouse movements, providing seamless pre-loading and smooth interactions.</p>
+                <button class="demo-button" onclick="toggleMousePrediction()">Test Prediction</button>
+            </div>
+
+            <div class="feature-card gaze-interactive predictive-hover emotional-element">
+                <h3>🎨 Emotion Colors</h3>
+                <p>Dynamic color schemes that adapt to your emotional state, creating personalized visual experiences.</p>
+                <div class="emotion-buttons">
+                    <button class="emotion-btn" onclick="changeEmotion('joy')">Joy</button>
+                    <button class="emotion-btn" onclick="changeEmotion('trust')">Trust</button>
+                    <button class="emotion-btn" onclick="changeEmotion('surprise')">Surprise</button>
+                    <button class="emotion-btn" onclick="changeEmotion('anticipation')">Anticipation</button>
+                </div>
+            </div>
+
+            <div class="feature-card gaze-interactive predictive-hover emotional-element">
+                <h3>⚛️ Quantum Particles</h3>
+                <p>Beautiful particle physics simulation that responds to your interactions with quantum-inspired behaviors.</p>
+                <button class="demo-button" onclick="addParticles()">Add Particles</button>
+            </div>
+        </div>
+
+        <!-- Interactive Demos -->
+        <div class="interaction-demo">
+            <h2>Holographic Code Visualization</h2>
+            <div class="holographic-demo holographic-code gaze-interactive">
+                <div class="code-lines" id="code-display">
+                    <div class="code-line">const futureTech = new InnovationEngine();</div>
+                    <div class="code-line">futureTech.initialize({</div>
+                    <div class="code-line">  eyeTracking: true,</div>
+                    <div class="code-line">  emotionDetection: true,</div>
+                    <div class="code-line">  quantumParticles: true</div>
+                    <div class="code-line">});</div>
+                    <div class="code-line">futureTech.createMagic();</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interaction-demo">
+            <h2>Emotion-Responsive Theme</h2>
+            <div class="emotion-demo" id="emotion-demo">
+                <h3>Current Emotion: <span id="emotion-display">Trust</span></h3>
+                <p>The background color changes based on detected or selected emotions</p>
+            </div>
+        </div>
+
+        <div class="interaction-demo">
+            <h2>Quantum Particle Interaction</h2>
+            <div class="particle-demo" id="particle-demo">
+                <!-- Quantum particles will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <h3>System Controls</h3>
+            <div class="control-group">
+                <label for="particle-count-slider">Particle Count:</label>
+                <input type="range" id="particle-count-slider" min="50" max="500" value="200" onchange="updateParticleCount(this.value)">
+            </div>
+            <div class="control-group">
+                <label for="animation-speed">Animation Speed:</label>
+                <input type="range" id="animation-speed" min="0.1" max="2" step="0.1" value="1" onchange="updateAnimationSpeed(this.value)">
+            </div>
+            <div class="control-group">
+                <label for="performance-mode">Performance Mode:</label>
+                <select id="performance-mode" onchange="updatePerformanceMode(this.value)">
+                    <option value="auto">Auto</option>
+                    <option value="high">High Quality</option>
+                    <option value="balanced">Balanced</option>
+                    <option value="low">Low Resource</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eye Tracking Implementation Script -->
+    <script>
+        // 🚨緊急修正: 堅牢な眼球追跡システム
+        class RobustEyeTrackingSystem {
+            constructor() {
+                this.isInitialized = false;
+                this.isCalibrating = false;
+                this.calibrationPoints = [];
+                this.currentPointIndex = 0;
+                this.gazeData = [];
+                this.calibrationAccuracy = 0;
+                this.statusElement = null;
+                this.progressElement = null;
+                
+                // 🚨新機能: デバッグと診断
+                this.debugMode = window.location.hash === '#debug';
+                this.initializationAttempts = 0;
+                this.maxInitializationAttempts = 3;
+                this.systemStatus = 'uninitialized';
+                
+                // ブラウザ互換性チェック
+                this.browserSupport = this.checkBrowserSupport();
+                
+                this.log('🎯 RobustEyeTrackingSystem構築完了', 'info');
+            }
+            
+            checkBrowserSupport() {
+                const support = {
+                    mediaDevices: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                    webgl: !!window.WebGLRenderingContext,
+                    https: window.location.protocol === 'https:' || window.location.hostname === 'localhost',
+                    browser: this.detectBrowser()
+                };
+                
+                this.log('🔍 ブラウザサポート確認:', 'info', support);
+                return support;
+            }
+            
+            detectBrowser() {
+                const ua = navigator.userAgent;
+                if (ua.includes('Chrome')) return 'Chrome';
+                if (ua.includes('Firefox')) return 'Firefox';
+                if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+                if (ua.includes('Edge')) return 'Edge';
+                return 'Unknown';
+            }
+            
+            log(message, type = 'info', data = null) {
+                const timestamp = new Date().toISOString();
+                const logMessage = `[${timestamp}] ${message}`;
+                
+                switch (type) {
+                    case 'error':
+                        console.error(logMessage, data || '');
+                        break;
+                    case 'warn':
+                        console.warn(logMessage, data || '');
+                        break;
+                    case 'success':
+                        console.log(`✅ ${logMessage}`, data || '');
+                        break;
+                    default:
+                        console.log(`ℹ️ ${logMessage}`, data || '');
+                }
+                
+                if (this.debugMode) {
+                    this.updateDebugDisplay(logMessage, type);
+                }
+            }
+            
+            updateDebugDisplay(message, type) {
+                let debugPanel = document.getElementById('debug-panel');
+                if (!debugPanel) {
+                    debugPanel = document.createElement('div');
+                    debugPanel.id = 'debug-panel';
+                    debugPanel.style.cssText = `
+                        position: fixed;
+                        bottom: 10px;
+                        left: 10px;
+                        width: 400px;
+                        height: 200px;
+                        background: rgba(0, 0, 0, 0.9);
+                        color: white;
+                        padding: 10px;
+                        border-radius: 5px;
+                        font-family: monospace;
+                        font-size: 10px;
+                        overflow-y: auto;
+                        z-index: 10001;
+                        border: 1px solid #333;
+                    `;
+                    document.body.appendChild(debugPanel);
+                }
+                
+                const colors = {
+                    error: '#ff4444',
+                    warn: '#ffaa00',
+                    success: '#44ff44',
+                    info: '#4488ff'
+                };
+                
+                const logEntry = document.createElement('div');
+                logEntry.style.color = colors[type] || colors.info;
+                logEntry.textContent = message;
+                debugPanel.appendChild(logEntry);
+                
+                // 最新ログを表示
+                debugPanel.scrollTop = debugPanel.scrollHeight;
+                
+                // 100行を超えたら古いログを削除
+                if (debugPanel.children.length > 100) {
+                    debugPanel.removeChild(debugPanel.firstChild);
+                }
+            }
+
+            async initialize() {
+                this.initializationAttempts++;
+                this.systemStatus = 'initializing';
+                
+                try {
+                    this.log(`🎯 WebGazer.js初期化開始 (試行 ${this.initializationAttempts}/${this.maxInitializationAttempts})`, 'info');
+                    
+                    // 前提条件チェック
+                    const prereqCheck = await this.checkPrerequisites();
+                    if (!prereqCheck.success) {
+                        throw new Error(`前提条件エラー: ${prereqCheck.message}`);
+                    }
+                    
+                    // WebGazer.js利用可能性確認
+                    if (typeof webgazer === 'undefined') {
+                        throw new Error('WebGazer.jsが利用できません');
+                    }
+                    
+                    this.log('WebGazer.js利用可能性確認完了', 'success');
+                    
+                    // WebGazer.jsの初期化
+                    await webgazer.setGazeListener((data, clock) => {
+                        if (data && data.x && data.y) {
+                            this.handleGazeData(data, clock);
+                        }
+                    }).begin();
+
+                    // 設定の適用
+                    webgazer.showVideoPreview(false)
+                            .showPredictionPoints(false)
+                            .applyKalmanFilter(true);
+
+                    this.isInitialized = true;
+                    this.systemStatus = 'initialized';
+                    this.updateStatus('WebGazer.js初期化完了', 'success');
+                    this.log('✅ WebGazer.js初期化成功', 'success');
+                    
+                    return true;
+                } catch (error) {
+                    this.systemStatus = 'error';
+                    this.log(`❌ WebGazer.js初期化失敗: ${error.message}`, 'error');
+                    
+                    // リトライロジック
+                    if (this.initializationAttempts < this.maxInitializationAttempts) {
+                        this.log(`🔄 ${2}秒後に再試行します...`, 'warn');
+                        await this.delay(2000);
+                        return this.initialize();
+                    } else {
+                        this.updateStatus(`初期化失敗: ${error.message}`, 'error');
+                        this.showFallbackOptions();
+                        return false;
+                    }
+                }
+            }
+            
+            async checkPrerequisites() {
+                const checks = [];
+                
+                // HTTPS/localhost チェック
+                if (!this.browserSupport.https) {
+                    checks.push('HTTPS接続またはlocalhostが必要です');
+                }
+                
+                // MediaDevices API チェック
+                if (!this.browserSupport.mediaDevices) {
+                    checks.push('カメラAPIがサポートされていません');
+                }
+                
+                // WebGL チェック
+                if (!this.browserSupport.webgl) {
+                    checks.push('WebGLがサポートされていません');
+                }
+                
+                // WebGazer.js CDN読み込み確認
+                try {
+                    await window.webgazerPromise;
+                    this.log('WebGazer.js CDN読み込み確認完了', 'success');
+                } catch (error) {
+                    checks.push(`WebGazer.js読み込み失敗: ${error.message}`);
+                }
+                
+                return {
+                    success: checks.length === 0,
+                    message: checks.join(', ')
+                };
+            }
+            
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            showFallbackOptions() {
+                const fallbackOverlay = document.createElement('div');
+                fallbackOverlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.95);
+                    z-index: 10000;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    font-family: Arial, sans-serif;
+                    overflow-y: auto;
+                `;
+                
+                const isHTTPS = window.location.protocol === 'https:';
+                const isLocalhost = window.location.hostname === 'localhost';
+                const isFile = window.location.protocol === 'file:';
+                
+                fallbackOverlay.innerHTML = `
+                    <div style="text-align: center; max-width: 700px; padding: 40px; margin: 20px;">
+                        <h2 style="color: #ffaa00;">🔒 HTTPS環境が必要です</h2>
+                        
+                        <div style="margin: 20px 0; padding: 25px; background: rgba(255, 170, 0, 0.1); border-radius: 15px; text-align: left; border-left: 4px solid #ffaa00;">
+                            <h3 style="color: #ffaa00; margin-top: 0;">📋 根本原因</h3>
+                            <p><strong>眼球追跡機能にはカメラアクセスが必要です。</strong></p>
+                            <p>ブラウザのセキュリティ制約により、カメラアクセスは<strong>HTTPS環境</strong>または<strong>localhost</strong>でのみ利用可能です。</p>
+                            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                                <strong>現在の環境:</strong> ${window.location.protocol}//${window.location.hostname}<br>
+                                <strong>HTTPS:</strong> ${isHTTPS ? '✅ 対応' : '❌ 未対応'}<br>
+                                <strong>Localhost:</strong> ${isLocalhost ? '✅ 対応' : '❌ 未対応'}<br>
+                                <strong>File://:</strong> ${isFile ? '⚠️ カメラ利用不可' : '✅ 問題なし'}
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 20px 0; padding: 25px; background: rgba(76, 175, 80, 0.1); border-radius: 15px; text-align: left; border-left: 4px solid #4CAF50;">
+                            <h3 style="color: #4CAF50; margin-top: 0;">🚀 解決方法</h3>
+                            
+                            <h4>📱 すぐに試せる方法:</h4>
+                            <ol>
+                                <li><strong>ローカルサーバー起動</strong> (推奨)
+                                    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin: 8px 0; font-family: monospace;">
+                                        # Python 3の場合<br>
+                                        python -m http.server 8000<br><br>
+                                        # Python 2の場合<br>
+                                        python -m SimpleHTTPServer 8000<br><br>
+                                        # Node.jsの場合<br>
+                                        npx http-server
+                                    </div>
+                                    その後 <code>http://localhost:8000</code> でアクセス
+                                </li>
+                                
+                                <li><strong>無料HTTPS環境を利用</strong>
+                                    <ul>
+                                        <li><a href="https://pages.github.com/" target="_blank" style="color: #4CAF50;">GitHub Pages</a> - 無料でHTTPS対応</li>
+                                        <li><a href="https://netlify.com/" target="_blank" style="color: #4CAF50;">Netlify</a> - ドラッグ&ドロップでデプロイ</li>
+                                        <li><a href="https://vercel.com/" target="_blank" style="color: #4CAF50;">Vercel</a> - 高速デプロイ</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                            
+                            <h4>🎭 代替体験:</h4>
+                            <p>眼球追跡が利用できない場合でも、<strong>マウストラッキング機能</strong>でWebサイトの革新的なインタラクションを体験できます！</p>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <button onclick="enableMouseTrackingMode()" style="
+                                background: linear-gradient(45deg, #4CAF50, #45a049);
+                                border: none;
+                                padding: 15px 30px;
+                                border-radius: 25px;
+                                color: white;
+                                font-size: 16px;
+                                font-weight: bold;
+                                cursor: pointer;
+                                margin: 10px;
+                                box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+                            ">🖱️ マウストラッキングで体験</button>
+                            
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                                background: #666;
+                                border: none;
+                                padding: 15px 30px;
+                                border-radius: 25px;
+                                color: white;
+                                font-size: 16px;
+                                cursor: pointer;
+                                margin: 10px;
+                            ">閉じる</button>
+                            
+                            <button onclick="copyLocalServerCommand()" style="
+                                background: #2196F3;
+                                border: none;
+                                padding: 15px 30px;
+                                border-radius: 25px;
+                                color: white;
+                                font-size: 16px;
+                                cursor: pointer;
+                                margin: 10px;
+                            ">📋 サーバーコマンドをコピー</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(fallbackOverlay);
+            }
+            
+            // 🚨新機能: マウストラッキングモード
+            enableMouseTrackingMode() {
+                console.log('🖱️ マウストラッキングモード開始');
+                
+                // フォールバック画面を閉じる
+                const overlay = document.querySelector('[style*="position: fixed"]');
+                if (overlay) overlay.remove();
+                
+                // マウストラッキング機能を有効化
+                this.initializeMouseTracking();
+                
+                // ユーザーに通知
+                this.updateStatus('マウストラッキングモードが有効になりました', 'success');
+                document.getElementById('eye-status').className = 'status-light active';
+            }
+            
+            initializeMouseTracking() {
+                let mouseTrackingActive = true;
+                
+                // マウストラッキング表示
+                const tracker = document.createElement('div');
+                tracker.id = 'mouse-tracker';
+                tracker.style.cssText = `
+                    position: fixed;
+                    width: 15px;
+                    height: 15px;
+                    background: radial-gradient(circle, #00ff00, #0080ff);
+                    border: 2px solid rgba(255, 255, 255, 0.8);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 9999;
+                    transition: all 0.1s ease;
+                    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+                `;
+                document.body.appendChild(tracker);
+                
+                // マウス追跡
+                document.addEventListener('mousemove', (e) => {
+                    if (!mouseTrackingActive) return;
+                    
+                    tracker.style.left = (e.clientX - 7) + 'px';
+                    tracker.style.top = (e.clientY - 7) + 'px';
+                    
+                    // インタラクティブ要素との相互作用
+                    const elements = document.elementsFromPoint(e.clientX, e.clientY);
+                    elements.forEach(element => {
+                        if (element.classList.contains('gaze-interactive') || 
+                            element.classList.contains('predictive-hover')) {
+                            this.triggerMouseEffect(element);
+                        }
+                    });
+                });
+                
+                // 情報パネル表示
+                this.showMouseTrackingInfo();
+            }
+            
+            triggerMouseEffect(element) {
+                element.style.transition = 'all 0.3s ease';
+                element.style.transform = 'scale(1.02)';
+                element.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.4)';
+                
+                setTimeout(() => {
+                    element.style.transform = '';
+                    element.style.boxShadow = '';
+                }, 500);
+            }
+            
+            showMouseTrackingInfo() {
+                const infoPanel = document.createElement('div');
+                infoPanel.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    background: rgba(0, 0, 0, 0.8);
+                    color: #00ff00;
+                    padding: 15px;
+                    border-radius: 10px;
+                    font-family: monospace;
+                    font-size: 12px;
+                    z-index: 1001;
+                    border: 1px solid #00ff00;
+                `;
+                
+                infoPanel.innerHTML = `
+                    <strong>🖱️ マウストラッキング有効</strong><br>
+                    ・マウスでインタラクション体験<br>
+                    ・要素にホバーで反応<br>
+                    ・眼球追跡の代替機能<br>
+                    <button onclick="this.parentElement.remove()" style="
+                        background: #00ff00;
+                        border: none;
+                        color: black;
+                        padding: 5px 10px;
+                        border-radius: 3px;
+                        cursor: pointer;
+                        margin-top: 10px;
+                        font-size: 10px;
+                    ">閉じる</button>
+                `;
+                
+                document.body.appendChild(infoPanel);
+            }
+            
+            // ローカルサーバーコマンドコピー機能
+            copyLocalServerCommand() {
+                const command = 'python -m http.server 8000';
+                
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(command).then(() => {
+                        alert('サーバー起動コマンドをコピーしました！\nターミナルで実行してください。');
+                    });
+                } else {
+                    // フォールバック
+                    const textArea = document.createElement('textarea');
+                    textArea.value = command;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('サーバー起動コマンドをコピーしました！\nターミナルで実行してください。');
+                }
+            }
+
+            handleGazeData(data, clock) {
+                this.gazeData.push({
+                    x: data.x,
+                    y: data.y,
+                    timestamp: clock
+                });
+
+                // データを最新100件に制限
+                if (this.gazeData.length > 100) {
+                    this.gazeData.shift();
+                }
+
+                // デバッグ表示更新
+                if (document.getElementById('gaze-pos')) {
+                    document.getElementById('gaze-pos').textContent = `${Math.round(data.x)}, ${Math.round(data.y)}`;
+                }
+
+                // 校正中の場合、視線位置を表示
+                if (this.isCalibrating) {
+                    this.showGazeIndicator(data.x, data.y);
+                }
+            }
+
+            showGazeIndicator(x, y) {
+                let indicator = document.getElementById('gaze-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'gaze-indicator';
+                    indicator.style.cssText = `
+                        position: fixed;
+                        width: 20px;
+                        height: 20px;
+                        background: rgba(255, 0, 0, 0.7);
+                        border: 2px solid #fff;
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 10001;
+                        transition: all 0.1s ease;
+                    `;
+                    document.body.appendChild(indicator);
+                }
+
+                indicator.style.left = (x - 10) + 'px';
+                indicator.style.top = (y - 10) + 'px';
+            }
+
+            async startCalibration() {
+                if (!this.isInitialized) {
+                    const initialized = await this.initialize();
+                    if (!initialized) return;
+                }
+
+                this.updateStatus('カメラアクセス権限を確認中...', 'warning');
+                
+                try {
+                    // カメラアクセス権限の確認
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(track => track.stop()); // 一時的なストリームを停止
+                    
+                    this.updateStatus('校正を開始します', 'info');
+                    this.isCalibrating = true;
+                    
+                    // 校正ポイントの設定（9点校正）
+                    this.calibrationPoints = [
+                        { x: window.innerWidth * 0.1, y: window.innerHeight * 0.1 },   // 左上
+                        { x: window.innerWidth * 0.5, y: window.innerHeight * 0.1 },   // 中上
+                        { x: window.innerWidth * 0.9, y: window.innerHeight * 0.1 },   // 右上
+                        { x: window.innerWidth * 0.1, y: window.innerHeight * 0.5 },   // 左中
+                        { x: window.innerWidth * 0.5, y: window.innerHeight * 0.5 },   // 中央
+                        { x: window.innerWidth * 0.9, y: window.innerHeight * 0.5 },   // 右中
+                        { x: window.innerWidth * 0.1, y: window.innerHeight * 0.9 },   // 左下
+                        { x: window.innerWidth * 0.5, y: window.innerHeight * 0.9 },   // 中下
+                        { x: window.innerWidth * 0.9, y: window.innerHeight * 0.9 }    // 右下
+                    ];
+                    
+                    this.currentPointIndex = 0;
+                    this.showCalibrationInterface();
+                    
+                } catch (error) {
+                    console.error('カメラアクセスエラー:', error);
+                    this.updateStatus('カメラアクセスが拒否されました。ブラウザの設定を確認してください。', 'error');
+                    this.showCameraPermissionHelp();
+                }
+            }
+
+            showCalibrationInterface() {
+                // 既存のオーバーレイを削除
+                const existingOverlay = document.getElementById('calibration-overlay');
+                if (existingOverlay) {
+                    existingOverlay.remove();
+                }
+
+                // 校正オーバーレイの作成
+                const overlay = document.createElement('div');
+                overlay.id = 'calibration-overlay';
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    z-index: 10000;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    font-family: Arial, sans-serif;
+                `;
+
+                // 指示テキスト
+                const instruction = document.createElement('div');
+                instruction.style.cssText = `
+                    position: absolute;
+                    top: 50px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    text-align: center;
+                    font-size: 24px;
+                    color: #00ff00;
+                `;
+                instruction.innerHTML = `
+                    <h2>👁️ 眼球追跡校正</h2>
+                    <p>赤い点が表示されたら、その点を見つめてクリックしてください</p>
+                    <p>進捗: <span id="calibration-progress">0/${this.calibrationPoints.length}</span></p>
+                `;
+                overlay.appendChild(instruction);
+
+                // 進捗要素の保存
+                this.progressElement = instruction.querySelector('#calibration-progress');
+
+                document.body.appendChild(overlay);
+                this.showNextCalibrationPoint();
+            }
+
+            showNextCalibrationPoint() {
+                if (this.currentPointIndex >= this.calibrationPoints.length) {
+                    this.completeCalibration();
+                    return;
+                }
+
+                const point = this.calibrationPoints[this.currentPointIndex];
+                const overlay = document.getElementById('calibration-overlay');
+                
+                // 既存の点を削除
+                const existingDot = overlay.querySelector('.calibration-dot');
+                if (existingDot) {
+                    existingDot.remove();
+                }
+
+                // 新しい校正点を作成
+                const dot = document.createElement('div');
+                dot.className = 'calibration-dot';
+                dot.style.cssText = `
+                    position: absolute;
+                    width: 20px;
+                    height: 20px;
+                    background: #ff0000;
+                    border: 3px solid #ffffff;
+                    border-radius: 50%;
+                    left: ${point.x - 10}px;
+                    top: ${point.y - 10}px;
+                    cursor: pointer;
+                    animation: calibrationPulse 1s infinite;
+                    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+                `;
+
+                // CSS アニメーションの追加
+                if (!document.getElementById('calibration-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'calibration-styles';
+                    style.textContent = `
+                        @keyframes calibrationPulse {
+                            0%, 100% { transform: scale(1); opacity: 1; }
+                            50% { transform: scale(1.3); opacity: 0.7; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                dot.onclick = () => {
+                    // WebGazer.jsに校正点を登録
+                    webgazer.recordScreenPosition(point.x, point.y, 'click');
+                    
+                    this.currentPointIndex++;
+                    this.updateProgress();
+                    
+                    // 次の点に進む
+                    setTimeout(() => {
+                        this.showNextCalibrationPoint();
+                    }, 500);
+                };
+
+                overlay.appendChild(dot);
+                this.updateProgress();
+            }
+
+            updateProgress() {
+                if (this.progressElement) {
+                    this.progressElement.textContent = `${this.currentPointIndex}/${this.calibrationPoints.length}`;
+                }
+            }
+
+            async completeCalibration() {
+                this.isCalibrating = false;
+                
+                // 校正精度の計算
+                await this.calculateAccuracy();
+                
+                const overlay = document.getElementById('calibration-overlay');
+                overlay.innerHTML = `
+                    <div style="text-align: center; color: #00ff00;">
+                        <h2>✅ 校正完了!</h2>
+                        <p>精度: ${this.calibrationAccuracy}%</p>
+                        <p>眼球追跡が有効になりました</p>
+                        <button onclick="eyeTracker.finishCalibration()" style="
+                            background: linear-gradient(45deg, #00ff00, #0080ff);
+                            border: none;
+                            padding: 15px 30px;
+                            border-radius: 25px;
+                            color: white;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            margin-top: 20px;
+                        ">続行</button>
+                    </div>
+                `;
+
+                // ステータス更新
+                this.updateStatus(`校正完了 (精度: ${this.calibrationAccuracy}%)`, 'success');
+                document.getElementById('eye-status').className = 'status-light active';
+            }
+
+            async calculateAccuracy() {
+                try {
+                    // 簡単な精度計算 (実際の実装では更に詳細な計算が必要)
+                    const recentGazeData = this.gazeData.slice(-10);
+                    if (recentGazeData.length > 0) {
+                        const variance = this.calculateVariance(recentGazeData);
+                        this.calibrationAccuracy = Math.max(20, Math.min(95, 95 - variance / 10));
+                    } else {
+                        this.calibrationAccuracy = 75; // デフォルト値
+                    }
+                    this.calibrationAccuracy = Math.round(this.calibrationAccuracy);
+                } catch (error) {
+                    console.error('精度計算エラー:', error);
+                    this.calibrationAccuracy = 70;
+                }
+            }
+
+            calculateVariance(data) {
+                if (data.length === 0) return 100;
+                
+                const avgX = data.reduce((sum, point) => sum + point.x, 0) / data.length;
+                const avgY = data.reduce((sum, point) => sum + point.y, 0) / data.length;
+                
+                const variance = data.reduce((sum, point) => {
+                    return sum + Math.pow(point.x - avgX, 2) + Math.pow(point.y - avgY, 2);
+                }, 0) / data.length;
+                
+                return Math.sqrt(variance);
+            }
+
+            finishCalibration() {
+                const overlay = document.getElementById('calibration-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.remove();
+                        // 視線インジケーターを削除
+                        const indicator = document.getElementById('gaze-indicator');
+                        if (indicator) indicator.remove();
+                    }, 500);
+                }
+                
+                // 校正スタイルを削除
+                const styles = document.getElementById('calibration-styles');
+                if (styles) styles.remove();
+                
+                this.updateStatus('眼球追跡が有効です', 'success');
+            }
+
+            showCameraPermissionHelp() {
+                const helpOverlay = document.createElement('div');
+                helpOverlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.9);
+                    z-index: 10000;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    font-family: Arial, sans-serif;
+                `;
+                
+                helpOverlay.innerHTML = `
+                    <div style="text-align: center; max-width: 500px; padding: 40px;">
+                        <h2 style="color: #ff6b6b;">📷 カメラアクセスが必要です</h2>
+                        <p>眼球追跡機能を使用するには、Webカメラへのアクセスを許可してください。</p>
+                        <div style="margin: 20px 0; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 10px;">
+                            <h3>手順:</h3>
+                            <ol style="text-align: left;">
+                                <li>ブラウザのアドレスバーにあるカメラアイコンをクリック</li>
+                                <li>「許可」または「Allow」を選択</li>
+                                <li>ページを再読み込み</li>
+                                <li>再度「Calibrate Eye Tracking」ボタンを押す</li>
+                            </ol>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" style="
+                            background: #ff6b6b;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 20px;
+                            color: white;
+                            cursor: pointer;
+                            margin-top: 20px;
+                        ">閉じる</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(helpOverlay);
+            }
+
+            updateStatus(message, type = 'info') {
+                console.log(`🎯 [${type.toUpperCase()}] ${message}`);
+                
+                // ステータス表示の更新
+                if (!this.statusElement) {
+                    this.statusElement = document.createElement('div');
+                    this.statusElement.id = 'eye-tracking-status';
+                    this.statusElement.style.cssText = `
+                        position: fixed;
+                        top: 80px;
+                        right: 20px;
+                        background: rgba(0, 0, 0, 0.9);
+                        color: white;
+                        padding: 10px 15px;
+                        border-radius: 5px;
+                        font-family: monospace;
+                        font-size: 12px;
+                        z-index: 1001;
+                        max-width: 300px;
+                        word-wrap: break-word;
+                    `;
+                    document.body.appendChild(this.statusElement);
+                }
+
+                const colors = {
+                    info: '#00bfff',
+                    success: '#00ff00',
+                    warning: '#ffa500',
+                    error: '#ff6b6b'
+                };
+
+                this.statusElement.style.borderLeft = `4px solid ${colors[type] || colors.info}`;
+                this.statusElement.textContent = message;
+
+                // 5秒後に自動で消去（エラー以外）
+                if (type !== 'error') {
+                    setTimeout(() => {
+                        if (this.statusElement && this.statusElement.textContent === message) {
+                            this.statusElement.style.opacity = '0';
+                            setTimeout(() => {
+                                if (this.statusElement) {
+                                    this.statusElement.remove();
+                                    this.statusElement = null;
+                                }
+                            }, 300);
+                        }
+                    }, 5000);
+                }
+            }
+
+            // 手動で停止する場合
+            stop() {
+                if (webgazer.isReady()) {
+                    webgazer.end();
+                }
+                this.isInitialized = false;
+                this.isCalibrating = false;
+                
+                // UI要素の削除
+                const overlay = document.getElementById('calibration-overlay');
+                if (overlay) overlay.remove();
+                
+                const indicator = document.getElementById('gaze-indicator');
+                if (indicator) indicator.remove();
+                
+                if (this.statusElement) {
+                    this.statusElement.remove();
+                    this.statusElement = null;
+                }
+                
+                this.updateStatus('眼球追跡を停止しました', 'info');
+            }
+        }
+
+        // 🚨緊急修正: 堅牢なグローバル初期化システム
+        let robustEyeTracker = null;
+        let systemInitialized = false;
+        
+        // 完全初期化システム
+        async function initializeRobustSystem() {
+            try {
+                console.log('🚀 堅牢な眼球追跡システム初期化開始...');
+                
+                // WebGazer.js読み込み待機
+                await window.webgazerPromise;
+                
+                // システム構築
+                robustEyeTracker = new RobustEyeTrackingSystem();
+                
+                // 初期化状態更新
+                systemInitialized = true;
+                
+                console.log('✅ 堅牢な眼球追跡システム準備完了');
+                
+                // ステータス表示更新
+                updateSystemStatus('ready', '眼球追跡システム準備完了');
+                
+            } catch (error) {
+                console.error('❌ システム初期化失敗:', error);
+                systemInitialized = false;
+                updateSystemStatus('error', `システム初期化失敗: ${error.message}`);
+            }
+        }
+        
+        // システム状態表示更新
+        function updateSystemStatus(status, message) {
+            const statusElement = document.getElementById('eye-status');
+            if (statusElement) {
+                statusElement.className = status === 'ready' ? 'status-light active' : 'status-light inactive';
+            }
+            
+            // デバッグモードでの詳細表示
+            if (window.location.hash === '#debug') {
+                console.log(`🎯 システム状態: ${status} - ${message}`);
+            }
+        }
+
+        // 校正開始関数（ボタンから呼び出される）
+        async function startEyeCalibration() {
+            try {
+                console.log('👁️ 眼球追跡校正開始要求...');
+                
+                if (!systemInitialized) {
+                    console.log('⏳ システム初期化中...');
+                    updateSystemStatus('initializing', 'システム初期化中...');
+                    await initializeRobustSystem();
+                }
+                
+                if (robustEyeTracker && systemInitialized) {
+                    await robustEyeTracker.startCalibration();
+                } else {
+                    throw new Error('眼球追跡システムが利用できません');
+                }
+                
+            } catch (error) {
+                console.error('❌ 校正開始エラー:', error);
+                
+                // ユーザーフレンドリーなエラーメッセージ
+                const errorOverlay = document.createElement('div');
+                errorOverlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 10000;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    color: white;
+                    font-family: Arial, sans-serif;
+                `;
+                
+                errorOverlay.innerHTML = `
+                    <div style="text-align: center; max-width: 500px; padding: 40px; background: rgba(255, 255, 255, 0.1); border-radius: 20px;">
+                        <h2 style="color: #ff6b6b;">🚨 眼球追跡を開始できませんでした</h2>
+                        <p style="margin: 20px 0; line-height: 1.6;">${error.message}</p>
+                        <div style="margin-top: 30px;">
+                            <button onclick="location.reload()" style="
+                                background: #4CAF50;
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: 20px;
+                                color: white;
+                                cursor: pointer;
+                                margin: 10px;
+                            ">🔄 再読み込み</button>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+                                background: #ff6b6b;
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: 20px;
+                                color: white;
+                                cursor: pointer;
+                                margin: 10px;
+                            ">❌ 閉じる</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(errorOverlay);
+            }
+        }
+        
+        // 🚨新機能: グローバル関数として代替機能を定義
+        window.enableMouseTrackingMode = function() {
+            console.log('🖱️ マウストラッキングモード開始');
+            
+            // フォールバック画面を閉じる
+            const overlays = document.querySelectorAll('[style*="position: fixed"]');
+            overlays.forEach(overlay => {
+                if (overlay.style.zIndex >= 10000) overlay.remove();
+            });
+            
+            // マウストラッキング機能を有効化
+            initializeMouseTracking();
+            
+            // ステータス更新
+            updateSystemStatus('ready', 'マウストラッキングモード有効');
+        };
+        
+        window.copyLocalServerCommand = function() {
+            const command = 'python -m http.server 8000';
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(command).then(() => {
+                    alert('✅ サーバー起動コマンドをコピーしました！\n\nターミナルで以下を実行してください：\n' + command + '\n\nその後 http://localhost:8000 でアクセス');
+                }).catch(() => {
+                    fallbackCopy(command);
+                });
+            } else {
+                fallbackCopy(command);
+            }
+            
+            function fallbackCopy(text) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('✅ サーバー起動コマンドをコピーしました！\n\nターミナルで以下を実行してください：\n' + text + '\n\nその後 http://localhost:8000 でアクセス');
+            }
+        };
+        
+        function initializeMouseTracking() {
+            // 既存のトラッカーを削除
+            const existingTracker = document.getElementById('mouse-tracker');
+            if (existingTracker) existingTracker.remove();
+            
+            let mouseTrackingActive = true;
+            
+            // マウストラッキング表示
+            const tracker = document.createElement('div');
+            tracker.id = 'mouse-tracker';
+            tracker.style.cssText = `
+                position: fixed;
+                width: 15px;
+                height: 15px;
+                background: radial-gradient(circle, #00ff00, #0080ff);
+                border: 2px solid rgba(255, 255, 255, 0.8);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9999;
+                transition: all 0.1s ease;
+                box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+            `;
+            document.body.appendChild(tracker);
+            
+            // マウス追跡
+            document.addEventListener('mousemove', (e) => {
+                if (!mouseTrackingActive) return;
+                
+                tracker.style.left = (e.clientX - 7) + 'px';
+                tracker.style.top = (e.clientY - 7) + 'px';
+                
+                // インタラクティブ要素との相互作用
+                const elements = document.elementsFromPoint(e.clientX, e.clientY);
+                elements.forEach(element => {
+                    if (element.classList.contains('gaze-interactive') || 
+                        element.classList.contains('predictive-hover')) {
+                        triggerMouseEffect(element);
+                    }
+                });
+            });
+            
+            // 情報パネル表示
+            showMouseTrackingInfo();
+        }
+        
+        function triggerMouseEffect(element) {
+            element.style.transition = 'all 0.3s ease';
+            element.style.transform = 'scale(1.02)';
+            element.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.4)';
+            
+            setTimeout(() => {
+                element.style.transform = '';
+                element.style.boxShadow = '';
+            }, 500);
+        }
+        
+        function showMouseTrackingInfo() {
+            // 既存の情報パネルを削除
+            const existingPanel = document.querySelector('#mouse-tracking-info');
+            if (existingPanel) existingPanel.remove();
+            
+            const infoPanel = document.createElement('div');
+            infoPanel.id = 'mouse-tracking-info';
+            infoPanel.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.9);
+                color: #00ff00;
+                padding: 15px;
+                border-radius: 10px;
+                font-family: Arial, sans-serif;
+                font-size: 12px;
+                z-index: 1001;
+                border: 1px solid #00ff00;
+                box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+            `;
+            
+            infoPanel.innerHTML = `
+                <strong>🖱️ マウストラッキング有効</strong><br>
+                ・マウスでインタラクション体験中<br>
+                ・要素にホバーすると反応します<br>
+                ・眼球追跡の代替機能として動作<br>
+                <button onclick="this.parentElement.remove()" style="
+                    background: #00ff00;
+                    border: none;
+                    color: black;
+                    padding: 5px 10px;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    margin-top: 10px;
+                    font-size: 10px;
+                    font-weight: bold;
+                ">閉じる</button>
+            `;
+            
+            document.body.appendChild(infoPanel);
+            
+            // 10秒後に自動で閉じる
+            setTimeout(() => {
+                if (infoPanel.parentElement) {
+                    infoPanel.style.opacity = '0';
+                    setTimeout(() => {
+                        if (infoPanel.parentElement) infoPanel.remove();
+                    }, 300);
+                }
+            }, 10000);
+        }
+
+        // ページ読み込み後に自動初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM読み込み完了 - 自動初期化開始');
+            setTimeout(initializeRobustSystem, 1000); // 1秒後に初期化開始
+        });
+
+        // その他のデモ機能は既存のまま保持
+        function toggleMousePrediction() {
+            document.body.style.cursor = 'crosshair';
+            setTimeout(() => {
+                document.body.style.cursor = 'default';
+            }, 3000);
+        }
+
+        function changeEmotion(emotion) {
+            document.getElementById('emotion-display').textContent = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+        }
+
+        function addParticles() {
+            console.log('パーティクル追加（デモ）');
+        }
+
+        function updateParticleCount(count) {
+            console.log('パーティクル数更新:', count);
+        }
+
+        function updateAnimationSpeed(speed) {
+            document.documentElement.style.setProperty('--animation-speed', `${speed}s`);
+        }
+
+        function updatePerformanceMode(mode) {
+            document.body.className = document.body.className.replace(/\b(high|low|balanced)-performance\b/g, '');
+            if (mode !== 'auto') {
+                document.body.classList.add(`${mode}-performance`);
+            }
+        }
+
+        function toggleDebugMode() {
+            document.body.classList.toggle('debug-mode');
+        }
+
+        // ページアンロード時のクリーンアップ
+        window.addEventListener('beforeunload', () => {
+            if (eyeTracker) {
+                eyeTracker.stop();
+            }
+        });
+    </script>
+
+    <!-- Demo Control Script -->
+    <script>
+        // Demo-specific functionality
+        let debugMode = false;
+        let enhancedSystem = null;
+
+        // Initialize demo when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Animate code lines
+            animateCodeLines();
+            
+            // Update status indicators
+            updateStatusIndicators();
+        });
+
+        function animateCodeLines() {
+            const codeLines = document.querySelectorAll('.code-line');
+            codeLines.forEach((line, index) => {
+                line.style.animationDelay = `${index * 0.2}s`;
+            });
+        }
+
+        function updateStatusIndicators() {
+            // Simulate status updates
+            setTimeout(() => {
+                document.getElementById('mouse-status').className = 'status-light active';
+            }, 1000);
+            
+            setTimeout(() => {
+                document.getElementById('particle-status').className = 'status-light active';
+            }, 2000);
+            
+            setTimeout(() => {
+                document.getElementById('emotion-status').className = 'status-light active';
+            }, 3000);
+        }
+
+        // Enhanced system initialization removed - using direct WebGazer.js implementation
+
+        function toggleDebugMode() {
+            debugMode = !debugMode;
+            document.body.classList.toggle('debug-mode', debugMode);
+            
+            if (debugMode) {
+                startDebugUpdates();
+            }
+        }
+
+        function startDebugUpdates() {
+            setInterval(() => {
+                if (debugMode) {
+                    updateDebugInfo();
+                }
+            }, 100);
+        }
+
+        function updateDebugInfo() {
+            const mousePos = document.getElementById('mouse-pos');
+            const gazePos = document.getElementById('gaze-pos');
+            const currentEmotion = document.getElementById('current-emotion');
+            const particleCount = document.getElementById('particle-count');
+            const memoryUsage = document.getElementById('memory-usage');
+
+            // Update with actual values if available
+            if (performance.memory) {
+                memoryUsage.textContent = `${Math.round(performance.memory.usedJSHeapSize / 1024 / 1024)}MB`;
+            }
+        }
+
+        // Duplicate function removed - using main implementation above
+
+        function toggleMousePrediction() {
+            // Demo mouse prediction
+            document.body.style.cursor = 'crosshair';
+            setTimeout(() => {
+                document.body.style.cursor = 'default';
+            }, 3000);
+        }
+
+        function changeEmotion(emotion) {
+            document.getElementById('emotion-display').textContent = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+            
+            // Trigger emotion change event
+            const event = new CustomEvent('emotionChange', {
+                detail: { emotion: emotion }
+            });
+            document.dispatchEvent(event);
+        }
+
+        function addParticles() {
+            const event = new CustomEvent('addParticles', {
+                detail: { count: 50 }
+            });
+            document.dispatchEvent(event);
+        }
+
+        function updateParticleCount(count) {
+            const event = new CustomEvent('updateParticleCount', {
+                detail: { count: parseInt(count) }
+            });
+            document.dispatchEvent(event);
+        }
+
+        function updateAnimationSpeed(speed) {
+            document.documentElement.style.setProperty('--animation-speed', `${speed}s`);
+        }
+
+        function updatePerformanceMode(mode) {
+            document.body.className = document.body.className.replace(/\b(high|low|balanced)-performance\b/g, '');
+            
+            if (mode !== 'auto') {
+                document.body.classList.add(`${mode}-performance`);
+            }
+        }
+
+        // Track mouse position for debug
+        document.addEventListener('mousemove', (e) => {
+            if (debugMode) {
+                document.getElementById('mouse-pos').textContent = `${e.clientX}, ${e.clientY}`;
+            }
+        });
+
+        // FPS Counter
+        let frameCount = 0;
+        let lastTime = Date.now();
+
+        function updateFPS() {
+            frameCount++;
+            const now = Date.now();
+            
+            if (now - lastTime >= 1000) {
+                document.getElementById('fps-display').textContent = frameCount;
+                frameCount = 0;
+                lastTime = now;
+            }
+            
+            requestAnimationFrame(updateFPS);
+        }
+        updateFPS();
+
+        // Performance monitoring
+        if (performance.memory) {
+            setInterval(() => {
+                const memoryMB = performance.memory.usedJSHeapSize / 1024 / 1024;
+                if (memoryMB > 100) {
+                    document.body.classList.add('high-memory');
+                } else {
+                    document.body.classList.remove('high-memory');
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

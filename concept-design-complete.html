@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT企業ホームページ - 完全動作版</title>
+    
+    <!-- CDN Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            transition: opacity 1s ease;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(0, 255, 204, 0.3);
+            border-top: 3px solid #00ffcc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ニューロモーフィック・フロー */
+        .neuro-section {
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+            overflow: hidden;
+        }
+
+        .neural-network {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .neural-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #00ffcc;
+            border-radius: 50%;
+            box-shadow: 0 0 20px #00ffcc;
+            animation: pulse 3s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
+
+        .connection-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ffcc, transparent);
+            opacity: 0.6;
+            animation: flow 2s linear infinite;
+        }
+
+        @keyframes flow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* ダイナミック・タイポグラフィ */
+        .typo-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            perspective: 1000px;
+            position: relative;
+        }
+
+        .dynamic-text {
+            font-size: clamp(2rem, 8vw, 6rem);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transform-style: preserve-3d;
+        }
+
+        .dynamic-text span {
+            display: inline-block;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dynamic-text span::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(45deg, #00ffcc, #667eea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .dynamic-text span:hover::before {
+            opacity: 1;
+        }
+
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(102, 126, 234, 0.6);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-50px) rotate(180deg); }
+        }
+
+        /* エモーショナル・カラーリアクター */
+        .color-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            transition: background 1s ease;
+            position: relative;
+        }
+
+        .color-reactor {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            backdrop-filter: blur(20px);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-reactor::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00ffcc, #667eea, #764ba2, #ff6b6b);
+            background-size: 400% 400%;
+            animation: gradientShift 4s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .emotion-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* パララックス・ユニバース */
+        .universe-section {
+            min-height: 100vh;
+            position: relative;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            overflow: hidden;
+        }
+
+        .universe-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .stars-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 4s ease-in-out infinite;
+        }
+
+        .star.small { width: 1px; height: 1px; }
+        .star.medium { width: 2px; height: 2px; }
+        .star.large { width: 3px; height: 3px; }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #4a90e2, #1a5490);
+            box-shadow: 0 0 100px rgba(74, 144, 226, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .planet:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 150px rgba(74, 144, 226, 0.8);
+        }
+
+        .planet.large {
+            width: 120px;
+            height: 120px;
+            animation: orbit 30s linear infinite;
+        }
+
+        .planet.medium {
+            width: 80px;
+            height: 80px;
+            animation: orbit 20s linear infinite reverse;
+        }
+
+        .planet.small {
+            width: 60px;
+            height: 60px;
+            animation: orbit 15s linear infinite;
+        }
+
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(250px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(250px) rotate(-360deg); }
+        }
+
+        /* セクションタイトル */
+        .section-title {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: bold;
+            z-index: 10;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+        }
+
+        /* ナビゲーション */
+        nav {
+            position: fixed;
+            top: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 0 20px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 10px 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        nav a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, #00ffcc, #667eea);
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        nav a:hover::before {
+            opacity: 1;
+        }
+
+        nav a:hover {
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .section-title {
+                top: 20px;
+                left: 20px;
+                font-size: 1.5rem;
+            }
+            
+            .color-reactor {
+                width: 200px;
+                height: 200px;
+            }
+        }
+
+        /* デバッグ情報 */
+        .debug-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #00ffcc;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav>
+        <ul>
+            <li><a href="#neuro">ニューロモーフィック</a></li>
+            <li><a href="#typo">タイポグラフィ</a></li>
+            <li><a href="#color">カラーリアクター</a></li>
+            <li><a href="#universe">ユニバース</a></li>
+        </ul>
+    </nav>
+
+    <!-- Debug Info -->
+    <div class="debug-info" id="debugInfo">
+        <div>Mouse: <span id="mousePos">0, 0</span></div>
+        <div>Emotion: <span id="currentEmotion">Neutral</span></div>
+        <div>FPS: <span id="fps">60</span></div>
+    </div>
+
+    <!-- ニューロモーフィック・フロー -->
+    <section id="neuro" class="neuro-section">
+        <h2 class="section-title">ニューロモーフィック・フロー</h2>
+        <div class="neural-network">
+            <canvas class="neural-canvas" id="neuralCanvas"></canvas>
+        </div>
+    </section>
+
+    <!-- ダイナミック・タイポグラフィ -->
+    <section id="typo" class="typo-section">
+        <h2 class="section-title">ダイナミック・タイポグラフィ</h2>
+        <div class="floating-particles" id="particles"></div>
+        <div class="dynamic-text" id="dynamicText">
+            <span data-text="I">I</span>
+            <span data-text="N">N</span>
+            <span data-text="N">N</span>
+            <span data-text="O">O</span>
+            <span data-text="V">V</span>
+            <span data-text="A">A</span>
+            <span data-text="T">T</span>
+            <span data-text="E">E</span>
+        </div>
+    </section>
+
+    <!-- エモーショナル・カラーリアクター -->
+    <section id="color" class="color-section">
+        <h2 class="section-title">エモーショナル・カラーリアクター</h2>
+        <div class="emotion-indicator">
+            <div>感情状態: <span id="emotionDisplay">Neutral</span></div>
+        </div>
+        <div class="color-reactor" id="colorReactor"></div>
+    </section>
+
+    <!-- パララックス・ユニバース -->
+    <section id="universe" class="universe-section">
+        <h2 class="section-title">パララックス・ユニバース</h2>
+        <canvas class="universe-canvas" id="universeCanvas"></canvas>
+        <div class="stars-layer" id="starsLayer"></div>
+        <div class="planet large" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+        <div class="planet medium" style="top: 30%; left: 70%;"></div>
+        <div class="planet small" style="top: 70%; left: 30%;"></div>
+    </section>
+
+    <script>
+        // Global variables
+        let isLoading = true;
+        let mouseX = 0, mouseY = 0;
+        let currentEmotion = 'Neutral';
+        let fps = 0;
+        let frameCount = 0;
+        let lastTime = Date.now();
+
+        // Initialize the application
+        function init() {
+            setupLoading();
+            setupNeuralNetwork();
+            setupTypography();
+            setupColorReactor();
+            setupUniverse();
+            setupNavigation();
+            setupDebug();
+            
+            // Hide loading screen after 2 seconds
+            setTimeout(() => {
+                hideLoadingScreen();
+            }, 2000);
+        }
+
+        // Loading Screen
+        function setupLoading() {
+            console.log('Setting up loading screen...');
+        }
+
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                isLoading = false;
+            }, 1000);
+        }
+
+        // Neural Network Implementation
+        function setupNeuralNetwork() {
+            const canvas = document.getElementById('neuralCanvas');
+            const ctx = canvas.getContext('2d');
+            const section = document.getElementById('neuro');
+            
+            // Set canvas size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Node system
+            const nodes = [];
+            const connections = [];
+            
+            // Create nodes
+            for (let i = 0; i < 100; i++) {
+                nodes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    radius: Math.random() * 3 + 2,
+                    brightness: Math.random()
+                });
+            }
+
+            // Animation loop
+            function animateNeural() {
+                if (isLoading) {
+                    requestAnimationFrame(animateNeural);
+                    return;
+                }
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Update and draw nodes
+                nodes.forEach(node => {
+                    // Update position
+                    node.x += node.vx;
+                    node.y += node.vy;
+                    
+                    // Bounce off edges
+                    if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+                    if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+                    
+                    // Mouse interaction
+                    const dx = mouseX - node.x;
+                    const dy = mouseY - node.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 200) {
+                        node.x -= dx * 0.01;
+                        node.y -= dy * 0.01;
+                    }
+                    
+                    // Draw node
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = \`rgba(0, 255, 204, \${node.brightness * 0.8})\`;
+                    ctx.fill();
+                    ctx.shadowColor = '#00ffcc';
+                    ctx.shadowBlur = 20;
+                });
+                
+                // Draw connections
+                ctx.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+                ctx.lineWidth = 1;
+                
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[i].x - nodes[j].x;
+                        const dy = nodes[i].y - nodes[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 150) {
+                            ctx.beginPath();
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(nodes[j].x, nodes[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                
+                requestAnimationFrame(animateNeural);
+            }
+            
+            animateNeural();
+        }
+
+        // Typography System
+        function setupTypography() {
+            const dynamicText = document.getElementById('dynamicText');
+            const particles = document.getElementById('particles');
+            
+            // Create floating particles
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 8 + 's';
+                particles.appendChild(particle);
+            }
+            
+            // Letter animations
+            const letters = dynamicText.querySelectorAll('span');
+            letters.forEach((letter, index) => {
+                letter.addEventListener('mouseenter', () => {
+                    gsap.to(letter, {
+                        duration: 0.3,
+                        rotationY: 360,
+                        scale: 1.2,
+                        color: '#00ffcc'
+                    });
+                });
+                
+                letter.addEventListener('mouseleave', () => {
+                    gsap.to(letter, {
+                        duration: 0.3,
+                        rotationY: 0,
+                        scale: 1,
+                        color: '#ffffff'
+                    });
+                });
+            });
+            
+            // Wave animation
+            gsap.to(letters, {
+                duration: 2,
+                y: -20,
+                stagger: 0.1,
+                yoyo: true,
+                repeat: -1,
+                ease: "power2.inOut"
+            });
+        }
+
+        // Color Reactor System
+        function setupColorReactor() {
+            const colorSection = document.getElementById('color').querySelector('.color-section');
+            const emotionDisplay = document.getElementById('emotionDisplay');
+            let behaviorData = [];
+            
+            // Simple emotion detection based on mouse behavior
+            let mouseSpeed = 0;
+            let lastMouseTime = Date.now();
+            let clickCount = 0;
+            
+            colorSection.addEventListener('mousemove', (e) => {
+                const currentTime = Date.now();
+                const deltaTime = currentTime - lastMouseTime;
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                mouseSpeed = Math.sqrt(deltaX * deltaX + deltaY * deltaY) / deltaTime * 100;
+                lastMouseTime = currentTime;
+                
+                // Determine emotion based on behavior
+                if (mouseSpeed > 50) {
+                    currentEmotion = 'Excited';
+                } else if (mouseSpeed < 10) {
+                    currentEmotion = 'Calm';
+                } else {
+                    currentEmotion = 'Focused';
+                }
+                
+                // Update colors based on emotion
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                let hue, saturation, lightness;
+                
+                switch(currentEmotion) {
+                    case 'Excited':
+                        hue = 0 + x * 60; // Red to Orange
+                        saturation = 80;
+                        lightness = 60 + y * 30;
+                        break;
+                    case 'Calm':
+                        hue = 200 + x * 60; // Blue to Cyan
+                        saturation = 60;
+                        lightness = 40 + y * 20;
+                        break;
+                    default:
+                        hue = x * 360;
+                        saturation = 70;
+                        lightness = 50 + y * 20;
+                }
+                
+                colorSection.style.background = \`linear-gradient(45deg, 
+                    hsl(\${hue}, \${saturation}%, \${lightness}%) 0%, 
+                    hsl(\${hue + 60}, \${saturation - 10}%, \${lightness - 10}%) 100%)\`;
+                
+                emotionDisplay.textContent = currentEmotion;
+            });
+            
+            colorSection.addEventListener('click', () => {
+                clickCount++;
+                if (clickCount > 5) {
+                    currentEmotion = 'Enthusiastic';
+                    emotionDisplay.textContent = currentEmotion;
+                    setTimeout(() => {
+                        clickCount = 0;
+                        currentEmotion = 'Neutral';
+                    }, 3000);
+                }
+            });
+        }
+
+        // Universe System
+        function setupUniverse() {
+            const canvas = document.getElementById('universeCanvas');
+            const ctx = canvas.getContext('2d');
+            const starsLayer = document.getElementById('starsLayer');
+            
+            // Set canvas size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Create stars
+            const stars = [];
+            for (let i = 0; i < 300; i++) {
+                const star = document.createElement('div');
+                const size = Math.random();
+                star.className = \`star \${size < 0.3 ? 'small' : size < 0.7 ? 'medium' : 'large'}\`;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 4 + 's';
+                starsLayer.appendChild(star);
+                
+                stars.push({
+                    element: star,
+                    x: parseFloat(star.style.left),
+                    y: parseFloat(star.style.top),
+                    z: Math.random() * 1000
+                });
+            }
+            
+            // Parallax effect
+            window.addEventListener('scroll', () => {
+                const scrollY = window.scrollY;
+                const universeOffset = document.getElementById('universe').offsetTop;
+                
+                if (scrollY > universeOffset - window.innerHeight) {
+                    const parallaxValue = (scrollY - universeOffset) * 0.5;
+                    stars.forEach(star => {
+                        const speed = star.z / 1000;
+                        star.element.style.transform = \`translateY(\${parallaxValue * speed}px)\`;
+                    });
+                }
+            });
+            
+            // Nebula effect on canvas
+            function drawNebula() {
+                const gradient = ctx.createRadialGradient(
+                    canvas.width / 2, canvas.height / 2, 0,
+                    canvas.width / 2, canvas.height / 2, canvas.width / 2
+                );
+                gradient.addColorStop(0, 'rgba(102, 126, 234, 0.1)');
+                gradient.addColorStop(0.5, 'rgba(118, 75, 162, 0.05)');
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            function animateUniverse() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawNebula();
+                requestAnimationFrame(animateUniverse);
+            }
+            
+            animateUniverse();
+        }
+
+        // Navigation System
+        function setupNavigation() {
+            document.querySelectorAll('nav a').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    
+                    gsap.to(window, {
+                        duration: 1.5,
+                        scrollTo: target,
+                        ease: "power2.inOut"
+                    });
+                });
+            });
+        }
+
+        // Debug System
+        function setupDebug() {
+            const debugInfo = document.getElementById('debugInfo');
+            const mousePos = document.getElementById('mousePos');
+            const emotionSpan = document.getElementById('currentEmotion');
+            const fpsSpan = document.getElementById('fps');
+            
+            // Toggle debug with 'D' key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'd' || e.key === 'D') {
+                    debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+            
+            // Update debug info
+            function updateDebug() {
+                mousePos.textContent = \`\${mouseX}, \${mouseY}\`;
+                emotionSpan.textContent = currentEmotion;
+                
+                // Calculate FPS
+                frameCount++;
+                const currentTime = Date.now();
+                if (currentTime - lastTime >= 1000) {
+                    fps = frameCount;
+                    fpsSpan.textContent = fps;
+                    frameCount = 0;
+                    lastTime = currentTime;
+                }
+                
+                requestAnimationFrame(updateDebug);
+            }
+            updateDebug();
+        }
+
+        // Mouse tracking
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // Service Worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgKCkgPT4gY29uc29sZS5sb2coJ1NlcnZpY2UgV29ya2VyIGluc3RhbGxlZCcpKTtzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZSA9PiBlLnJlc3BvbmRXaXRoKGZldGNoKGUucmVxdWVzdCkpKTs=')
+                .then(() => console.log('Service Worker registered'))
+                .catch(err => console.log('Service Worker registration failed'));
+        }
+
+        // Error handling
+        window.addEventListener('error', (e) => {
+            console.error('Application error:', e.error);
+        });
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Performance monitoring
+        console.log('🚀 IT企業ホームページ - 完全動作版 初期化完了');
+        console.log('💡 デバッグモード: Dキーを押してデバッグ情報を表示');
+    </script>
+</body>
+</html>

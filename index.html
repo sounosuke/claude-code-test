@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>革新的IT企業サイト - AIと量子技術の融合</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #0066ff, #00d4ff, #ff006e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient 3s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 50px;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .demo-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            border-color: #0066ff;
+        }
+        
+        .demo-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #00d4ff;
+        }
+        
+        .demo-card p {
+            color: #ccc;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .demo-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #0066ff, #00d4ff);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .demo-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 102, 255, 0.5);
+        }
+        
+        .warning {
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid #ffaa00;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 40px;
+        }
+        
+        .warning h3 {
+            color: #ffaa00;
+            margin-bottom: 10px;
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00d4ff;
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 20s infinite linear;
+        }
+        
+        @keyframes float {
+            from {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.5;
+            }
+            90% {
+                opacity: 0.5;
+            }
+            to {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <h1>革新的IT企業サイト</h1>
+        <p class="subtitle">AIと量子技術が創る未来のWeb体験</p>
+        
+        <div class="demo-grid">
+            <div class="demo-card">
+                <h2>👁️ 眼球追跡デモ</h2>
+                <p>WebGazer.jsを使用した革新的な眼球追跡システム。視線でWebサイトを操作する未来体験。</p>
+                <a href="integration-demo.html" class="demo-link">デモを体験</a>
+            </div>
+            
+            <div class="demo-card">
+                <h2>🎨 コンセプトデザイン</h2>
+                <p>ニューロモーフィック・フロー、3Dタイポグラフィなど4つの革新的デザインコンセプト。</p>
+                <a href="concept-design.html" class="demo-link">デザインを見る</a>
+            </div>
+            
+            <div class="demo-card">
+                <h2>⚡ パフォーマンスデモ</h2>
+                <p>AI駆動型レンダリング、量子最適化システムで実現する究極のパフォーマンス。</p>
+                <a href="demo-index.html" class="demo-link">性能を確認</a>
+            </div>
+        </div>
+        
+        <div class="warning">
+            <h3>🔒 HTTPS環境での利用について</h3>
+            <p>眼球追跡機能はブラウザのセキュリティ制約により、HTTPS環境でのみ動作します。<br>
+            GitHub Pagesは自動的にHTTPS対応されているため、全ての機能が正常に動作します。</p>
+        </div>
+    </div>
+    
+    <script>
+        // パーティクル生成
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (20 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+    </script>
+</body>
+</html>

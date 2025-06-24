@@ -10,7 +10,18 @@
       "Bash(*worker*_done.txt*)",
       "Bash(mkdir:*)",
       "Bash(then)",
-      "Bash(else)"
+      "Bash(else)",
+      "Bash([ -f ./tmp/worker2_done.txt ])",
+      "Bash([ -f ./tmp/worker3_done.txt ])",
+      "Bash(then echo \"全員完了\")",
+      "Bash(else echo \"他のworker待機中\")",
+      "Bash(fi)",
+      "Bash(ls:*)",
+      "Bash(open:*)",
+      "Bash(open:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
