@@ -11,9 +11,9 @@
         // WebGazer.js動的読み込みシステム
         (function() {
             const webgazerUrls = [
+                'https://webgazer.cs.brown.edu/webgazer.js',
                 'https://cdn.jsdelivr.net/npm/webgazer@2.0.1/dist/webgazer.min.js',
-                'https://unpkg.com/webgazer@2.0.1/dist/webgazer.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/webgazer/2.0.0/webgazer.min.js'
+                'https://unpkg.com/webgazer@latest/dist/webgazer.min.js'
             ];
             
             let currentUrlIndex = 0;
@@ -582,17 +582,38 @@
                     
                     this.log('WebGazer.js利用可能性確認完了', 'success');
                     
-                    // WebGazer.jsの初期化
-                    await webgazer.setGazeListener((data, clock) => {
+                    // WebGazer.js初期化 - 🚨完全修正版
+                    this.log('WebGazer.js開始処理実行中...', 'info');
+                    
+                    // 段階的初期化
+                    webgazer.setGazeListener((data, clock) => {
                         if (data && data.x && data.y) {
                             this.handleGazeData(data, clock);
                         }
-                    }).begin();
-
-                    // 設定の適用
-                    webgazer.showVideoPreview(false)
-                            .showPredictionPoints(false)
-                            .applyKalmanFilter(true);
+                    });
+                    
+                    // WebGazer開始
+                    await webgazer.begin();
+                    
+                    // 少し待機してから設定適用
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // 安全な設定適用
+                    try {
+                        // ビデオプレビューを非表示
+                        const videoContainer = document.getElementById('webgazerVideoContainer');
+                        if (videoContainer) {
+                            videoContainer.style.display = 'none';
+                        }
+                        
+                        // 予測点を非表示
+                        const gazeDot = document.getElementById('webgazerGazeDot');
+                        if (gazeDot) {
+                            gazeDot.style.display = 'none';
+                        }
+                    } catch (settingsError) {
+                        this.log('設定エラー（継続可能）', 'warn', settingsError.message);
+                    }
 
                     this.isInitialized = true;
                     this.systemStatus = 'initialized';
